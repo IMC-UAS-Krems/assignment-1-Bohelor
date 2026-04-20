@@ -32,7 +32,7 @@ class PremiumUser(User):
     def __init__(self, user_id, name,age=None, subscription_start=None):
         super().__init__(user_id, name,age)
         self.subscription_type = "Premium"
-        self.subscription_start_date = subscription_start
+        self.subscription_start = subscription_start
 class FamilyAccountUser(User): 
     def __init__(self, user_id, name,age=None):
         super().__init__(user_id, name,age)

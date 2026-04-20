@@ -9,16 +9,19 @@ Classes to implement:
 """
 from streaming.users import User
 class Playlist:
-    def __init__(self,playlist_id,title,tracks=None):
+    def __init__(self,playlist_id,title,owner=None,tracks=None):
         self.playlist_id = playlist_id
         self.title = title
-        self.owner = User
+        self.owner = owner
         self.tracks = tracks if tracks is not None else []
     def add_track(self, track):
         if all(getattr(t,"track_id",None) != getattr(track,"track_id",None) for t in self.tracks):
-          self.tracks.append(track)
+            self.tracks.append(track)
     def remove_track(self, track):
-        self.tracks.remove(track)
+        if isinstance(track, str):
+            self.tracks = [t for t in self.tracks if getattr(t, 'track_id', None) != track]
+        else:
+            self.tracks.remove(track)
     def total_duration_seconds(self):
         return sum(getattr(track,"duration_seconds",0) for track in self.tracks)
 class CollaborativePlaylist(Playlist):
@@ -37,3 +40,5 @@ class CollaborativePlaylist(Playlist):
         contributor_list = ", ".join([str(c) for c in self.contributors])
         track_list = "\n".join(f"  {t.title} by {t.artist}" for t in self.tracks)
         return f"Collaborative Playlist: {self.title}\nContributors: {contributor_list}\nTracks:\n{track_list}"
+
+

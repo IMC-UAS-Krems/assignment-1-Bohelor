@@ -12,18 +12,18 @@ You should:
 2. Complete the stub tests (marked with TODO or pass statements)
 3. Add additional test cases for edge cases and boundary conditions
 4. Verify your implementation passes all tests
+#  write code from the TODO part and make sure it works with the code in the streaming folder
 
 Run with:
     pytest tests/test_public.py -v
 """
 
-import pytest
-from datetime import datetime, timedelta
-
+from ast import Add
+from datetime import timedelta
 from streaming.platform import StreamingPlatform
 from streaming.users import FreeUser, PremiumUser, FamilyAccountUser, FamilyMember
 from streaming.playlists import CollaborativePlaylist
-from tests.conftest import FIXED_NOW, RECENT, OLD
+from conftest import FIXED_NOW, RECENT, OLD
 
 
 # ===========================================================================
@@ -51,11 +51,18 @@ class TestTotalListeningTime:
             far_future, far_future + timedelta(hours=1)
         )
         assert result == 0.0
-
-    # TODO: Add a test that verifies the correct value for a known time period.
-    #       Calculate the expected total based on the fixture data in conftest.py.
+#: Add a test that verifies the correct value for a known time period.
+        #Calculate the expected total based on the fixture data in conftest.py.
     def test_known_period_value(self, platform: StreamingPlatform) -> None:
-        pass
+        start = OLD
+        end = FIXED_NOW
+        expected_total = 0.0
+        for session in platform.all_sessions():
+            if start <= session.timestamp <= end:
+                expected_total += session.duration_listened_seconds / 60.0
+        result = platform.total_listening_time_minutes(start, end)
+        assert abs(result - expected_total) < 0.01
+
 
 
 # ===========================================================================
@@ -85,11 +92,7 @@ class TestAvgUniqueTracksPremium:
     # TODO: Add a test with the fixture platform that verifies the correct
     #       average for premium users. You'll need to count unique tracks
     #       per premium user and calculate the average.
-    def test_correct_value(self, platform: StreamingPlatform) -> None:
-        pass
-
-
-# ===========================================================================
+    def test_correct_value(self, platform: StreamingPlatform) -> None:        from streaming.users import PremiumUser        # Calculate expected average        premium_users = [u for u in platform.all_users() if isinstance(u, PremiumUser)]        user_track_counts = {u.user_id: set() for u in premium_users}        cutoff_time = FIXED_NOW - timedelta(days=30)        for session in platform.all_sessions():            if session.timestamp >= cutoff_time and session.user.user_id in user_track_counts:                user_track_counts[session.user.user_id].add(session.track.track_id)        total_unique_tracks = sum(len(tracks) for tracks in user_track_counts.values())        expected_average = total_unique_tracks / len(premium_users) if premium_users else 0.0        result = platform.avg_unique_tracks_per_premium_user(days=30)        assert abs(result - expected_average) < 0.01
 # Q3 - Track with the most distinct listeners
 # ===========================================================================
 
@@ -110,8 +113,21 @@ class TestTrackMostDistinctListeners:
     # TODO: Add a test that verifies the correct track is returned.
     #       Count listeners per track from the fixture data.
     def test_correct_track(self, platform: StreamingPlatform) -> None:
-        pass
-
+        from streaming.tracks import Track
+        track_listener_counts = {}
+        for session in platform.all_sessions():
+            for track in session.tracks:
+                if track.track_id not in track_listener_counts:
+                    track_listener_counts[track.track_id] = set()
+                track_listener_counts[track.track_id].add(session.user_id)
+        most_listeners = 0
+        expected_track = None
+        for track_id, listeners in track_listener_counts.items():
+            if len(listeners) > most_listeners:
+                most_listeners = len(listeners)
+                expected_track = platform.get_track_by_id(track_id)
+        result = platform.track_with_most_distinct_listeners()
+        assert result == expected_track
 
 # ===========================================================================
 # Q4 - Average session duration per user subtype, ranked

@@ -7,12 +7,12 @@ Classes to implement:
   - Album
 """
 class Album:
-    def __init__(self, album_id:str, title:str, artist:str, release_year, tracks:list,genre=None):
+    def __init__(self, album_id:str, title:str, artist:str, release_year, tracks:list=None, genre=None):
         self.album_id = album_id
         self.title = title
         self.artist = artist
         self.release_year = release_year
-        self.tracks = tracks
+        self.tracks = tracks if tracks is not None else []
         self.genre = genre
     def add_track(self, track):
         try:
@@ -24,8 +24,8 @@ class Album:
     def __str__(self):
         track_list = "\n".join(f"  {t.track_number}. {t.title} ({t.duration_seconds}s)" for t in self.tracks)
         return f"Album: {self.title} by {self.artist} ({self.release_year})\nTracks:\n{track_list}"
-    def tracks_id(self):
-        return [track.track_id for track in self.tracks]
+    def track_ids(self):
+        return {track.track_id for track in self.tracks}
     def duration_seconds(self):
         return sum(getattr(track,"duration_seconds",0) for track in self.tracks)
 class AlbumTrack(Album):
